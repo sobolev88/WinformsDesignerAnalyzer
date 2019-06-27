@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinformsDesignerAnalyzer", "WinformsDesignerAnalyzer\WinformsDesignerAnalyzer\WinformsDesignerAnalyzer.csproj", "{03474BFF-B5D2-4ADF-AF18-447AA8FC19AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinformsDesignerAnalyzer.Test", "WinformsDesignerAnalyzer\WinformsDesignerAnalyzer.Test\WinformsDesignerAnalyzer.Test.csproj", "{923758CF-68B7-436D-92BA-621D071FA413}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinformsDesignerAnalyzer.Vsix", "WinformsDesignerAnalyzer\WinformsDesignerAnalyzer.Vsix\WinformsDesignerAnalyzer.Vsix.csproj", "{46C8E13D-75A2-46B9-81E1-6C0CDB33F45F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{03474BFF-B5D2-4ADF-AF18-447AA8FC19AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03474BFF-B5D2-4ADF-AF18-447AA8FC19AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03474BFF-B5D2-4ADF-AF18-447AA8FC19AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03474BFF-B5D2-4ADF-AF18-447AA8FC19AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{923758CF-68B7-436D-92BA-621D071FA413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{923758CF-68B7-436D-92BA-621D071FA413}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{923758CF-68B7-436D-92BA-621D071FA413}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{923758CF-68B7-436D-92BA-621D071FA413}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46C8E13D-75A2-46B9-81E1-6C0CDB33F45F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46C8E13D-75A2-46B9-81E1-6C0CDB33F45F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46C8E13D-75A2-46B9-81E1-6C0CDB33F45F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46C8E13D-75A2-46B9-81E1-6C0CDB33F45F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {35FCA2CF-A857-4F8D-B428-D3E1BC93AB88}
+	EndGlobalSection
+EndGlobal
