@@ -43,23 +43,22 @@ namespace WinformsDesignerAnalyzer
 
 		private Task<Solution> CreateDesignerFileAsync(Document document, SyntaxNode root, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
 		{
-			const string template = @"
-namespace {0}
-{{
-	partial class {1}
-	{{
-	}}
-}}
-";
-			var g = SyntaxGenerator.GetGenerator(document);
-			var newType = (TypeDeclarationSyntax)g.WithModifiers(typeDecl, DeclarationModifiers.Partial);
+			var generator = SyntaxGenerator.GetGenerator(document);
+			var newType = (TypeDeclarationSyntax)generator.WithModifiers(typeDecl, DeclarationModifiers.Partial);
 			var newRoot = root.ReplaceNode(typeDecl, newType);
 			document = document.WithSyntaxRoot(newRoot);
 
-			var @namespace = (NamespaceDeclarationSyntax)typeDecl.Parent;
-			var designerCode = string.Format(template, @namespace.Name, typeDecl.Identifier);
+            var designerRoot = generator.ClassDeclaration(typeDecl.Identifier.Text);
+            designerRoot = generator.WithModifiers(designerRoot, DeclarationModifiers.Partial);
 
-			var newDocument = document.Project.AddDocument(document.Name.Replace(".cs", "") + ".Designer.cs", designerCode, document.Folders);
+            if (typeDecl.Parent is NamespaceDeclarationSyntax @namespace)
+            {
+                designerRoot = generator.NamespaceDeclaration(@namespace.Name, designerRoot);
+            }
+
+            designerRoot = generator.CompilationUnit(designerRoot);
+
+            var newDocument = document.Project.AddDocument(document.Name.Replace(".cs", "") + ".Designer.cs", designerRoot, document.Folders);
 			return Task.FromResult(newDocument.Project.Solution);
 		}
 	}

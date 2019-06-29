@@ -33,6 +33,11 @@ namespace WinformsDesignerAnalyzer
 				return;
 			}
 
+            if (!namedTypeSymbol.GetMembers().Any(m => m.Kind == SymbolKind.Method && m.Name == "InitializeComponents"))
+            {
+                return;
+            }
+
 			if (namedTypeSymbol.Locations.Any(l => l.GetLineSpan().Path.EndsWith(".Designer.cs")))
 			{
 				return;

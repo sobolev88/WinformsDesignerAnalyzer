@@ -1,72 +1,93 @@
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq;
 using TestHelper;
-using WinformsDesignerAnalyzer;
 
 namespace WinformsDesignerAnalyzer.Test
 {
 	[TestClass]
 	public class UnitTest : CodeFixVerifier
 	{
-
-		//No diagnostics expected to show up
 		[TestMethod]
-		public void TestMethod1()
+		public void WhenEmpty_NoDiagnostics()
 		{
 			var test = @"";
 
 			VerifyCSharpDiagnostic(test);
 		}
 
-		//Diagnostic and CodeFix both triggered and checked for
-		[TestMethod]
-		public void TestMethod2()
+        [TestMethod]
+        public void WhenNotForm_NoDiagnostics()
+        {
+            var test = @"
+class SomeClass
+{
+}";
+
+            VerifyCSharpDiagnostic(test);
+        }
+
+        [TestMethod]
+        public void WhenEmptyForm_NoDiagnostics()
+        {
+            var test = @"
+using System.Windows.Forms;
+
+class SomeForm : Form
+{
+}";
+
+            VerifyCSharpDiagnostic(test);
+        }
+
+        [TestMethod]
+		public void WhenContainsInitializeComponentsAndOneFile_ShouldDiagnostics()
 		{
 			var test = @"
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Diagnostics;
+using System.Windows.Forms;
 
-    namespace ConsoleApplication1
+class SomeForm : Form
+{
+    private void InitializeComponents()
     {
-        class TypeName
-        {   
-        }
-    }";
+    };
+}";
+
 			var expected = new DiagnosticResult
 			{
 				Id = "WinformsDesignerAnalyzer",
-				Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
+				Message = "Form 'SomeForm' does not contains designer file.",
 				Severity = DiagnosticSeverity.Warning,
 				Locations =
 					new[] {
-							new DiagnosticResultLocation("Test0.cs", 11, 15)
+							new DiagnosticResultLocation("Test0.cs", 4, 7)
 						}
 			};
 
 			VerifyCSharpDiagnostic(test, expected);
 
 			var fixtest = @"
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Diagnostics;
+using System.Windows.Forms;
 
-    namespace ConsoleApplication1
+partial class SomeForm : Form
+{
+    private void InitializeComponents()
     {
-        class TYPENAME
-        {   
-        }
-    }";
-			VerifyCSharpFix(test, fixtest);
+    };
+}";
+
+            var designer = @"partial class SomeForm
+{
+}";
+
+            var documents = GetFixedCSharpDocuments(test);
+            documents.Should().HaveCount(2);
+            documents[0].Should().Be(fixtest);
+            documents[1].Should().Be(designer);
 		}
 
 		protected override CodeFixProvider GetCSharpCodeFixProvider()
