@@ -3,8 +3,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
 using TestHelper;
 
 namespace WinformsDesignerAnalyzer.Test
@@ -52,7 +50,7 @@ using System.Windows.Forms;
 
 class SomeForm : Form
 {
-    private void InitializeComponents()
+    private void InitializeComponent()
     {
     };
 }";
@@ -75,7 +73,7 @@ using System.Windows.Forms;
 
 partial class SomeForm : Form
 {
-    private void InitializeComponents()
+    private void InitializeComponent()
     {
     };
 }";

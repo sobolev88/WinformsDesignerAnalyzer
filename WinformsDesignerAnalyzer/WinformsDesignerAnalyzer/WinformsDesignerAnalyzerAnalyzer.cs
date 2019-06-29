@@ -33,7 +33,7 @@ namespace WinformsDesignerAnalyzer
 				return;
 			}
 
-            if (!namedTypeSymbol.GetMembers().Any(m => m.Kind == SymbolKind.Method && m.Name == "InitializeComponents"))
+            if (!namedTypeSymbol.GetMembers().Any(m => m.Kind == SymbolKind.Method && m.Name == "InitializeComponent"))
             {
                 return;
             }
