@@ -8,7 +8,7 @@ namespace WinformsDesignerAnalyzer
 	[DiagnosticAnalyzer(LanguageNames.CSharp)]
 	public class WinformsDesignerAnalyzerAnalyzer : DiagnosticAnalyzer
 	{
-		public const string DiagnosticId = "WinformsDesignerAnalyzer";
+		public const string DiagnosticId = "WDA001";
 
 		private static readonly LocalizableString Title = new LocalizableResourceString(nameof(Resources.AnalyzerTitle), Resources.ResourceManager, typeof(Resources));
 		private static readonly LocalizableString MessageFormat = new LocalizableResourceString(nameof(Resources.AnalyzerMessageFormat), Resources.ResourceManager, typeof(Resources));

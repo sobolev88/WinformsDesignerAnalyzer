@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -52,9 +53,9 @@ namespace WinformsDesignerAnalyzer
             var designerClass = (TypeDeclarationSyntax)generator.ClassDeclaration(typeDecl.Identifier.Text);
             designerClass = (TypeDeclarationSyntax)generator.WithModifiers(designerClass, DeclarationModifiers.Partial);
 
-            (newType, designerClass) = MoveRegion(newType, designerClass, "Component fields");
-            (newType, designerClass) = MoveRegion(newType, designerClass, "Designer generated code");
             (newType, designerClass) = MoveRegion(newType, designerClass, "Standard WinForms code");
+            (newType, designerClass) = MoveRegion(newType, designerClass, "Designer generated code");
+            (newType, designerClass) = MoveRegion(newType, designerClass, "Component fields");
 
             SyntaxNode designerRoot = designerClass;
 
@@ -78,31 +79,16 @@ namespace WinformsDesignerAnalyzer
 
         private static (TypeDeclarationSyntax from, TypeDeclarationSyntax to) MoveRegion(TypeDeclarationSyntax from, TypeDeclarationSyntax to, string regionName)
         {
-            var region = from
-                .DescendantNodes(descendIntoTrivia: true)
-                .OfType<RegionDirectiveTriviaSyntax>()
-                .FirstOrDefault(r => r.ToFullString().Contains(regionName));
+            var members = GetMembersInRegion(from, regionName).ToArray();
 
-            if (region != null)
+            if (members.Any())
             {
-                var r = from.DescendantTrivia()
-                    .FirstOrDefault(t => t.IsKind(SyntaxKind.RegionDirectiveTrivia) && t.ToFullString().Contains(regionName));
-
-                var members = from.Members.Where(n => n.GetLeadingTrivia().Contains(r));
-
-                to = to.WithMembers(to.Members.InsertRange(0, members.Select(PrepareMember)));
+                to = to.WithMembers(to.Members.AddRange(members.Select(PrepareMember)));
                 from = from.RemoveNodes(members, SyntaxRemoveOptions.KeepDirectives);
-
-                region = from
-                    .DescendantNodes(descendIntoTrivia: true)
-                    .OfType<RegionDirectiveTriviaSyntax>()
-                    .FirstOrDefault(x => x.ToFullString().Contains(regionName));
-
-                if (region.GetNextDirective() is EndRegionDirectiveTriviaSyntax endregion)
-                {
-                    from = from.RemoveNodes(new[] { (SyntaxNode)region, endregion }, SyntaxRemoveOptions.KeepNoTrivia);
-                }
             }
+
+            from = RemoveRegion(from, regionName);
+
             return (from, to);
 
             MemberDeclarationSyntax PrepareMember(MemberDeclarationSyntax member)
@@ -113,6 +99,51 @@ namespace WinformsDesignerAnalyzer
                         ? default : @new;
                 });
             }
+        }
+
+        private static TypeDeclarationSyntax RemoveRegion(TypeDeclarationSyntax root, string regionName)
+        {
+            var region = FindRegion(root, regionName);
+
+            if (region == null)
+                return root;
+
+            var nodes = new List<SyntaxNode>(2) { region };
+
+            var endRegion = GetEndRegion(region);
+
+            if (endRegion != null)
+                nodes.Add(endRegion);
+
+            return root.RemoveNodes(nodes, SyntaxRemoveOptions.KeepNoTrivia);
+        }
+
+        private static IEnumerable<MemberDeclarationSyntax> GetMembersInRegion(TypeDeclarationSyntax root, string regionName)
+        {
+            var region = FindRegion(root, regionName);
+
+            if (region == null)
+                return Enumerable.Empty<MemberDeclarationSyntax>();
+
+            var endRegion = GetEndRegion(region);
+
+            if (endRegion == null)
+                return Enumerable.Empty<MemberDeclarationSyntax>();
+
+            return root.Members.Where(m => m.SpanStart > region.Span.End && m.SpanStart < endRegion.SpanStart);
+        }
+
+        private static RegionDirectiveTriviaSyntax FindRegion(SyntaxNode root, string regionName)
+        {
+            return root
+                .DescendantNodes(descendIntoTrivia: true)
+                .OfType<RegionDirectiveTriviaSyntax>()
+                .FirstOrDefault(r => r.ToFullString().Contains(regionName));
+        }
+
+        private static EndRegionDirectiveTriviaSyntax GetEndRegion(RegionDirectiveTriviaSyntax region)
+        {
+            return region.GetRelatedDirectives().Skip(1).FirstOrDefault() as EndRegionDirectiveTriviaSyntax;
         }
 	}
 }

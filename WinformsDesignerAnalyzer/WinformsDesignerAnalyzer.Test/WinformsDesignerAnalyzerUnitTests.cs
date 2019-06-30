@@ -57,7 +57,7 @@ class SomeForm : Form
 
 			var expected = new DiagnosticResult
 			{
-				Id = "WinformsDesignerAnalyzer",
+				Id = "WDA001",
 				Message = "Form 'SomeForm' does not contains designer file.",
 				Severity = DiagnosticSeverity.Warning,
 				Locations =
@@ -121,8 +121,14 @@ class SomeForm : Form
 	#region Component fields
 
 	private System.ComponentModel.IContainer components = null;
+	private System.Windows.Forms.Panel panel1;
 
 	#endregion
+
+    public SomeForm()
+    {
+        InitializeComponent();
+    }
 
     #region Standard WinForms code
 
@@ -158,7 +164,7 @@ class SomeForm : Form
 
             var expected = new DiagnosticResult
             {
-                Id = "WinformsDesignerAnalyzer",
+                Id = "WDA001",
                 Message = "Form 'SomeForm' does not contains designer file.",
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
@@ -175,6 +181,12 @@ using System.Windows.Forms;
 partial class SomeForm : Form
 {
 
+
+
+    public SomeForm()
+    {
+        InitializeComponent();
+    }
 
 
 
@@ -200,6 +212,7 @@ partial class SomeForm : Form
     }
 
     private System.ComponentModel.IContainer components = null;
+    private System.Windows.Forms.Panel panel1;
 }";
 
             var documents = GetFixedCSharpDocuments(test);
