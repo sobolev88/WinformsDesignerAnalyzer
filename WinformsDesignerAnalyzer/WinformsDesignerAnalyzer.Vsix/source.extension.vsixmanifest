@@ -3,7 +3,7 @@
   <Metadata>
     <Identity Id="WinformsDesignerAnalyzer.ea7f55f0-fa2a-45e1-85c7-243399716409" Version="1.0" Language="en-US" Publisher="sobolev88"/>
     <DisplayName>WinformsDesignerAnalyzer</DisplayName>
-    <Description xml:space="preserve">This is a sample diagnostic extension for the .NET Compiler Platform ("Roslyn").</Description>
+    <Description xml:space="preserve">This analyzer finds old forms without .Design.cs file and creates it.</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />
@@ -16,7 +16,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="WinformsDesignerAnalyzer" Path="|WinformsDesignerAnalyzer|"/>
   </Assets>
   <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
-    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0,16.0)" DisplayName="Roslyn Language Services" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0,)" DisplayName="Roslyn Language Services" />
   </Prerequisites>
 </PackageManifest>
