@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -36,12 +35,12 @@ namespace WinformsDesignerAnalyzer
 			context.RegisterCodeFix(
 				CodeAction.Create(
 					title: title,
-					createChangedSolution: c => CreateDesignerFileAsync(context.Document, root, declaration, c),
+					createChangedSolution: c => CreateDesignerFileAsync(context.Document, root, declaration),
 					equivalenceKey: title),
 				diagnostic);
 		}
 
-		private Task<Solution> CreateDesignerFileAsync(Document document, SyntaxNode root, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+		private Task<Solution> CreateDesignerFileAsync(Document document, SyntaxNode root, TypeDeclarationSyntax typeDecl)
 		{
 			var generator = SyntaxGenerator.GetGenerator(document);
 			var newType = (TypeDeclarationSyntax)generator.WithModifiers(typeDecl, DeclarationModifiers.Partial);

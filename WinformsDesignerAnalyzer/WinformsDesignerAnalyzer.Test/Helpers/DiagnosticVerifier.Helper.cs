@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace TestHelper
 {
-    /// <summary>
-    /// Class for turning strings into documents and getting the diagnostics on them
-    /// All methods are static
-    /// </summary>
-    public abstract partial class DiagnosticVerifier
+	/// <summary>
+	/// Class for turning strings into documents and getting the diagnostics on them
+	/// All methods are static
+	/// </summary>
+	public abstract partial class DiagnosticVerifier
     {
         private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
         private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location);
@@ -36,7 +36,7 @@ namespace TestHelper
         /// <param name="language">The language the source classes are in</param>
         /// <param name="analyzer">The analyzer to be run on the sources</param>
         /// <returns>An IEnumerable of Diagnostics that surfaced in the source code, sorted by Location</returns>
-        private static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
+        private static Diagnostic[] GetSortedDiagnostics(IEnumerable<(string text, string fileName)> sources, string language, DiagnosticAnalyzer analyzer)
         {
             return GetSortedDiagnosticsFromDocuments(analyzer, GetDocuments(sources, language));
         }
@@ -106,7 +106,7 @@ namespace TestHelper
         /// <param name="sources">Classes in the form of strings</param>
         /// <param name="language">The language the source code is in</param>
         /// <returns>A Tuple containing the Documents produced from the sources and their TextSpans if relevant</returns>
-        private static Document[] GetDocuments(string[] sources, string language)
+        private static Document[] GetDocuments(IEnumerable<(string text, string fileName)> sources, string language)
         {
             if (language != LanguageNames.CSharp && language != LanguageNames.VisualBasic)
             {
@@ -114,14 +114,7 @@ namespace TestHelper
             }
 
             var project = CreateProject(sources, language);
-            var documents = project.Documents.ToArray();
-
-            if (sources.Length != documents.Length)
-            {
-                throw new InvalidOperationException("Amount of sources did not match amount of Documents created");
-            }
-
-            return documents;
+            return project.Documents.ToArray();
         }
 
         /// <summary>
@@ -143,31 +136,37 @@ namespace TestHelper
         /// <returns>A Project created out of the Documents created from the source strings</returns>
         private static Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
         {
-            var fileNamePrefix = DefaultFilePathPrefix;
-            var fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
-
-            var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
-
-            var solution = new AdhocWorkspace()
-                .CurrentSolution
-                .AddProject(projectId, TestProjectName, TestProjectName, language)
-                .AddMetadataReference(projectId, CorlibReference)
-                .AddMetadataReference(projectId, SystemCoreReference)
-                .AddMetadataReference(projectId, CSharpSymbolsReference)
-                .AddMetadataReference(projectId, CodeAnalysisReference)
-                .AddMetadataReference(projectId, WinformsReference);
-
-            var count = 0;
-            foreach (var source in sources)
-            {
-                var newFileName = fileNamePrefix + count + "." + fileExt;
-                var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
-                solution = solution.AddDocument(documentId, newFileName, SourceText.From(source));
-                count++;
-            }
-            return solution.GetProject(projectId);
+			return CreateProject(GetTextsWithFileNames(sources, language), language);
         }
-        #endregion
-    }
+
+		private static IEnumerable<(string text, string fileName)> GetTextsWithFileNames(IEnumerable<string> sources, string language = LanguageNames.CSharp)
+		{
+			var fileNamePrefix = DefaultFilePathPrefix;
+			var fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
+			return sources.Select((t, i) => (t, fileNamePrefix + i + "." + fileExt));
+		}
+
+		private static Project CreateProject(IEnumerable<(string text, string fileName)> sources, string language = LanguageNames.CSharp)
+		{
+			var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
+
+			var solution = new AdhocWorkspace()
+				.CurrentSolution
+				.AddProject(projectId, TestProjectName, TestProjectName, language)
+				.AddMetadataReference(projectId, CorlibReference)
+				.AddMetadataReference(projectId, SystemCoreReference)
+				.AddMetadataReference(projectId, CSharpSymbolsReference)
+				.AddMetadataReference(projectId, CodeAnalysisReference)
+				.AddMetadataReference(projectId, WinformsReference);
+
+			foreach (var (text, fileName) in sources)
+			{
+				var documentId = DocumentId.CreateNewId(projectId, debugName: fileName);
+				solution = solution.AddDocument(documentId, fileName, SourceText.From(text));
+			}
+			return solution.GetProject(projectId);
+		}
+		#endregion
+	}
 }
 

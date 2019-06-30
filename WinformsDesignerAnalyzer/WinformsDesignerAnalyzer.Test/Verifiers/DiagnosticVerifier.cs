@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
@@ -41,7 +40,7 @@ namespace TestHelper
 		/// <param name="expected"> DiagnosticResults that should appear after the analyzer is run on the source</param>
 		protected void VerifyCSharpDiagnostic(string source, params DiagnosticResult[] expected)
 		{
-			VerifyDiagnostics(new[] { source }, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
+			VerifyDiagnostics(GetTextsWithFileNames(new[] { source }, LanguageNames.CSharp), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
 		}
 
 		/// <summary>
@@ -52,7 +51,7 @@ namespace TestHelper
 		/// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the source</param>
 		protected void VerifyBasicDiagnostic(string source, params DiagnosticResult[] expected)
 		{
-			VerifyDiagnostics(new[] { source }, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
+			VerifyDiagnostics(GetTextsWithFileNames(new[] { source }, LanguageNames.VisualBasic), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
 		}
 
 		/// <summary>
@@ -62,6 +61,11 @@ namespace TestHelper
 		/// <param name="sources">An array of strings to create source documents from to run the analyzers on</param>
 		/// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
 		protected void VerifyCSharpDiagnostic(string[] sources, params DiagnosticResult[] expected)
+		{
+			VerifyDiagnostics(GetTextsWithFileNames(sources, LanguageNames.CSharp), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
+		}
+
+		protected void VerifyCSharpDiagnostic((string text, string fileName)[] sources, params DiagnosticResult[] expected)
 		{
 			VerifyDiagnostics(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
 		}
@@ -74,7 +78,7 @@ namespace TestHelper
 		/// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
 		protected void VerifyBasicDiagnostic(string[] sources, params DiagnosticResult[] expected)
 		{
-			VerifyDiagnostics(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
+			VerifyDiagnostics(GetTextsWithFileNames(sources, LanguageNames.VisualBasic), LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
 		}
 
 		/// <summary>
@@ -85,7 +89,7 @@ namespace TestHelper
 		/// <param name="language">The language of the classes represented by the source strings</param>
 		/// <param name="analyzer">The analyzer to be run on the source code</param>
 		/// <param name="expected">DiagnosticResults that should appear after the analyzer is run on the sources</param>
-		private void VerifyDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
+		private static void VerifyDiagnostics(IEnumerable<(string text, string fileName)> sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
 		{
 			var diagnostics = GetSortedDiagnostics(sources, language, analyzer);
 			VerifyDiagnosticResults(diagnostics, analyzer, expected);
@@ -103,18 +107,18 @@ namespace TestHelper
 		/// <param name="expectedResults">Diagnostic Results that should have appeared in the code</param>
 		private static void VerifyDiagnosticResults(IEnumerable<Diagnostic> actualResults, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expectedResults)
 		{
-			int expectedCount = expectedResults.Count();
-			int actualCount = actualResults.Count();
+			var expectedCount = expectedResults.Count();
+			var actualCount = actualResults.Count();
 
 			if (expectedCount != actualCount)
 			{
-				string diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzer, actualResults.ToArray()) : "    NONE.";
+				var diagnosticsOutput = actualResults.Any() ? FormatDiagnostics(analyzer, actualResults.ToArray()) : "    NONE.";
 
 				Assert.IsTrue(false,
 					string.Format("Mismatch between number of diagnostics returned, expected \"{0}\" actual \"{1}\"\r\n\r\nDiagnostics:\r\n{2}\r\n", expectedCount, actualCount, diagnosticsOutput));
 			}
 
-			for (int i = 0; i < expectedResults.Length; i++)
+			for (var i = 0; i < expectedResults.Length; i++)
 			{
 				var actual = actualResults.ElementAt(i);
 				var expected = expectedResults[i];
@@ -141,7 +145,7 @@ namespace TestHelper
 								FormatDiagnostics(analyzer, actual)));
 					}
 
-					for (int j = 0; j < additionalLocations.Length; ++j)
+					for (var j = 0; j < additionalLocations.Length; ++j)
 					{
 						VerifyDiagnosticLocation(analyzer, actual, additionalLocations[j], expected.Locations[j + 1]);
 					}
@@ -221,7 +225,7 @@ namespace TestHelper
 		private static string FormatDiagnostics(DiagnosticAnalyzer analyzer, params Diagnostic[] diagnostics)
 		{
 			var builder = new StringBuilder();
-			for (int i = 0; i < diagnostics.Length; ++i)
+			for (var i = 0; i < diagnostics.Length; ++i)
 			{
 				builder.AppendLine("// " + diagnostics[i].ToString());
 
@@ -242,7 +246,7 @@ namespace TestHelper
 							Assert.IsTrue(location.IsInSource,
 								$"Test base does not currently handle diagnostics in metadata locations. Diagnostic in metadata: {diagnostics[i]}\r\n");
 
-							string resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs") ? "GetCSharpResultAt" : "GetBasicResultAt";
+							var resultMethodName = diagnostics[i].Location.SourceTree.FilePath.EndsWith(".cs") ? "GetCSharpResultAt" : "GetBasicResultAt";
 							var linePosition = diagnostics[i].Location.GetLineSpan().StartLinePosition;
 
 							builder.AppendFormat("{0}({1}, {2}, {3}.{4})",

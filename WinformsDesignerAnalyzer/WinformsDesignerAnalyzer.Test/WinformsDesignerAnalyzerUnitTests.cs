@@ -88,6 +88,28 @@ partial class SomeForm : Form
             documents[1].Should().Be(designer);
 		}
 
+		[TestMethod]
+		public void WhenContainsDesignerFile_NoDiagnostics()
+		{
+			var test = @"
+using System.Windows.Forms;
+
+class SomeForm : Form
+{
+    private void InitializeComponent()
+    {
+    };
+}";
+
+			var designerTest = @"
+partial class SomeForm
+{
+}
+";
+
+			VerifyCSharpDiagnostic(new[] { (test, "SomeForm.cs"), (designerTest, "SomeForm.Designer.cs") });
+		}
+
 		protected override CodeFixProvider GetCSharpCodeFixProvider()
 		{
 			return new WinformsDesignerAnalyzerCodeFixProvider();
