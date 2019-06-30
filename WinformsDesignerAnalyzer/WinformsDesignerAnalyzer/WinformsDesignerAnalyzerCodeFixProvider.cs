@@ -1,12 +1,16 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 
 namespace WinformsDesignerAnalyzer
 {
@@ -35,20 +39,24 @@ namespace WinformsDesignerAnalyzer
 			context.RegisterCodeFix(
 				CodeAction.Create(
 					title: title,
-					createChangedSolution: c => CreateDesignerFileAsync(context.Document, root, declaration),
+					createChangedSolution: c => CreateDesignerFileAsync(context.Document, root, declaration, c),
 					equivalenceKey: title),
 				diagnostic);
 		}
 
-		private Task<Solution> CreateDesignerFileAsync(Document document, SyntaxNode root, TypeDeclarationSyntax typeDecl)
+        private async Task<Solution> CreateDesignerFileAsync(Document document, SyntaxNode root, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
 		{
 			var generator = SyntaxGenerator.GetGenerator(document);
 			var newType = (TypeDeclarationSyntax)generator.WithModifiers(typeDecl, DeclarationModifiers.Partial);
-			var newRoot = root.ReplaceNode(typeDecl, newType);
-			document = document.WithSyntaxRoot(newRoot);
 
-            var designerRoot = generator.ClassDeclaration(typeDecl.Identifier.Text);
-            designerRoot = generator.WithModifiers(designerRoot, DeclarationModifiers.Partial);
+            var designerClass = (TypeDeclarationSyntax)generator.ClassDeclaration(typeDecl.Identifier.Text);
+            designerClass = (TypeDeclarationSyntax)generator.WithModifiers(designerClass, DeclarationModifiers.Partial);
+
+            (newType, designerClass) = MoveRegion(newType, designerClass, "Component fields");
+            (newType, designerClass) = MoveRegion(newType, designerClass, "Designer generated code");
+            (newType, designerClass) = MoveRegion(newType, designerClass, "Standard WinForms code");
+
+            SyntaxNode designerRoot = designerClass;
 
             if (typeDecl.Parent is NamespaceDeclarationSyntax @namespace)
             {
@@ -57,8 +65,54 @@ namespace WinformsDesignerAnalyzer
 
             designerRoot = generator.CompilationUnit(designerRoot);
 
+            var newRoot = root.ReplaceNode(typeDecl, newType);
+
+            document = document.WithSyntaxRoot(newRoot);
+
+            document = await Formatter.FormatAsync(document, cancellationToken: cancellationToken).ConfigureAwait(false);
+
             var newDocument = document.Project.AddDocument(document.Name.Replace(".cs", "") + ".Designer.cs", designerRoot, document.Folders);
-			return Task.FromResult(newDocument.Project.Solution);
+            newDocument = await Formatter.FormatAsync(newDocument, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return newDocument.Project.Solution;
 		}
+
+        private static (TypeDeclarationSyntax from, TypeDeclarationSyntax to) MoveRegion(TypeDeclarationSyntax from, TypeDeclarationSyntax to, string regionName)
+        {
+            var region = from
+                .DescendantNodes(descendIntoTrivia: true)
+                .OfType<RegionDirectiveTriviaSyntax>()
+                .FirstOrDefault(r => r.ToFullString().Contains(regionName));
+
+            if (region != null)
+            {
+                var r = from.DescendantTrivia()
+                    .FirstOrDefault(t => t.IsKind(SyntaxKind.RegionDirectiveTrivia) && t.ToFullString().Contains(regionName));
+
+                var members = from.Members.Where(n => n.GetLeadingTrivia().Contains(r));
+
+                to = to.WithMembers(to.Members.InsertRange(0, members.Select(PrepareMember)));
+                from = from.RemoveNodes(members, SyntaxRemoveOptions.KeepDirectives);
+
+                region = from
+                    .DescendantNodes(descendIntoTrivia: true)
+                    .OfType<RegionDirectiveTriviaSyntax>()
+                    .FirstOrDefault(x => x.ToFullString().Contains(regionName));
+
+                if (region.GetNextDirective() is EndRegionDirectiveTriviaSyntax endregion)
+                {
+                    from = from.RemoveNodes(new[] { (SyntaxNode)region, endregion }, SyntaxRemoveOptions.KeepNoTrivia);
+                }
+            }
+            return (from, to);
+
+            MemberDeclarationSyntax PrepareMember(MemberDeclarationSyntax member)
+            {
+                return member.ReplaceTrivia(member.GetLeadingTrivia(), (old, @new) =>
+                {
+                    return @new.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) || old.IsKind(SyntaxKind.RegionDirectiveTrivia) || old.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                        ? default : @new;
+                });
+            }
+        }
 	}
 }
