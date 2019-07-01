@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -38,7 +39,7 @@ namespace WinformsDesignerAnalyzer
                 return;
             }
 
-			if (namedTypeSymbol.Locations.Any(l => l.GetLineSpan().Path.EndsWith(".Designer.cs")))
+			if (namedTypeSymbol.Locations.Any(l => l.GetLineSpan().Path.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase)))
 			{
 				return;
 			}
