@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -138,7 +139,7 @@ namespace WinformsDesignerAnalyzer
             return root
                 .DescendantNodes(descendIntoTrivia: true)
                 .OfType<RegionDirectiveTriviaSyntax>()
-                .FirstOrDefault(r => r.ToFullString().Contains(regionName));
+                .FirstOrDefault(r => r.ToFullString().IndexOf(regionName, StringComparison.OrdinalIgnoreCase) >= 0);
         }
 
         private static EndRegionDirectiveTriviaSyntax GetEndRegion(RegionDirectiveTriviaSyntax region)
