@@ -18,9 +18,9 @@ namespace WinformsDesignerAnalyzer
 
 		private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
 
-		public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
-		public override void Initialize(AnalysisContext context)
+        public override void Initialize(AnalysisContext context)
 		{
 			context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
 		}
@@ -29,7 +29,7 @@ namespace WinformsDesignerAnalyzer
 		{
 			var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-			if (!IsSubtypeFrom(namedTypeSymbol, "System.Windows.Forms.Form"))
+			if (!IsSubtypeFrom(namedTypeSymbol, "System.Windows.Forms.ContainerControl"))
 			{
 				return;
 			}
@@ -54,7 +54,7 @@ namespace WinformsDesignerAnalyzer
 
 			while (namedTypeSymbol != null)
 			{
-				if (namedTypeSymbol.ToDisplayString() == fullTypeName)
+                if (namedTypeSymbol.ToDisplayString() == fullTypeName)
 				{
 					return true;
 				}

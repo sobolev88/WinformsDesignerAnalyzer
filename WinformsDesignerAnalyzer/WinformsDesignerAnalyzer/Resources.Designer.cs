@@ -62,7 +62,7 @@ namespace WinformsDesignerAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows form should contains designer file..
+        ///   Looks up a localized string similar to Winforms control should contains designer file..
         /// </summary>
         internal static string AnalyzerDescription {
             get {
@@ -71,7 +71,7 @@ namespace WinformsDesignerAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Form &apos;{0}&apos; does not contains designer file..
+        ///   Looks up a localized string similar to Control &apos;{0}&apos; does not contains designer file..
         /// </summary>
         internal static string AnalyzerMessageFormat {
             get {
@@ -80,7 +80,7 @@ namespace WinformsDesignerAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows form without designer file..
+        ///   Looks up a localized string similar to Winforms control without designer file..
         /// </summary>
         internal static string AnalyzerTitle {
             get {

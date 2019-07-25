@@ -118,12 +118,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AnalyzerDescription" xml:space="preserve">
-    <value>Windows form should contains designer file.</value>
+    <value>Winforms control should contains designer file.</value>
   </data>
   <data name="AnalyzerMessageFormat" xml:space="preserve">
-    <value>Form '{0}' does not contains designer file.</value>
+    <value>Control '{0}' does not contains designer file.</value>
   </data>
   <data name="AnalyzerTitle" xml:space="preserve">
-    <value>Windows form without designer file.</value>
+    <value>Winforms control without designer file.</value>
   </data>
 </root>

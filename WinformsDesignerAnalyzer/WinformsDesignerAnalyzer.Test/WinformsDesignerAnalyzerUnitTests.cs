@@ -2,15 +2,14 @@ using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using TestHelper;
 
 namespace WinformsDesignerAnalyzer.Test
 {
-	[TestClass]
 	public class UnitTest : CodeFixVerifier
 	{
-		[TestMethod]
+        [Test]
 		public void WhenEmpty_NoDiagnostics()
 		{
 			var test = @"";
@@ -18,7 +17,7 @@ namespace WinformsDesignerAnalyzer.Test
 			VerifyCSharpDiagnostic(test);
 		}
 
-        [TestMethod]
+        [Test]
         public void WhenNotForm_NoDiagnostics()
         {
             var test = @"
@@ -29,7 +28,7 @@ class SomeClass
             VerifyCSharpDiagnostic(test);
         }
 
-        [TestMethod]
+        [Test]
         public void WhenEmptyForm_NoDiagnostics()
         {
             var test = @"
@@ -42,7 +41,7 @@ class SomeForm : Form
             VerifyCSharpDiagnostic(test);
         }
 
-        [TestMethod]
+        [Test]
 		public void WhenContainsInitializeComponentsAndOneFile_ShouldDiagnostics()
 		{
 			var test = @"
@@ -58,7 +57,7 @@ class SomeForm : Form
 			var expected = new DiagnosticResult
 			{
 				Id = "WDA001",
-				Message = "Form 'SomeForm' does not contains designer file.",
+				Message = "Control 'SomeForm' does not contains designer file.",
 				Severity = DiagnosticSeverity.Warning,
 				Locations =
 					new[] {
@@ -88,7 +87,7 @@ partial class SomeForm : Form
             documents[1].Should().Be(designer);
 		}
 
-		[TestMethod]
+		[Test]
 		public void WhenContainsDesignerFile_NoDiagnostics()
 		{
 			var test = @"
@@ -110,13 +109,14 @@ partial class SomeForm
 			VerifyCSharpDiagnostic(new[] { (test, "SomeForm.cs"), (designerTest, "SomeForm.Designer.cs") });
 		}
 
-        [TestMethod]
-        public void WhenContainsRegion_ShouldFix()
+        [TestCase("Form")]
+        [TestCase("UserControl")]
+        public void WhenContainsRegion_ShouldFix(string baseClass)
         {
-            var test = @"
+            var testTemplate = @"
 using System.Windows.Forms;
 
-class SomeForm : Form
+class SomeForm : BASE_CLASS
 {
 	#region Component fields
 
@@ -162,10 +162,12 @@ class SomeForm : Form
 	#endregion
 }";
 
+            var test = testTemplate.Replace("BASE_CLASS", baseClass);
+
             var expected = new DiagnosticResult
             {
                 Id = "WDA001",
-                Message = "Form 'SomeForm' does not contains designer file.",
+                Message = "Control 'SomeForm' does not contains designer file.",
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] {
@@ -175,10 +177,10 @@ class SomeForm : Form
 
             VerifyCSharpDiagnostic(test, expected);
 
-            var fixtest = @"
+            var fixtestTemplate = @"
 using System.Windows.Forms;
 
-partial class SomeForm : Form
+partial class SomeForm : BASE_CLASS
 {
 
 
@@ -214,6 +216,8 @@ partial class SomeForm : Form
     private System.ComponentModel.IContainer components = null;
     private System.Windows.Forms.Panel panel1;
 }";
+
+            var fixtest = fixtestTemplate.Replace("BASE_CLASS", baseClass);
 
             var documents = GetFixedCSharpDocuments(test);
             documents.Should().HaveCount(2);

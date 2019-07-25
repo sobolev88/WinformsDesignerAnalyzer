@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 
 namespace WinformsDesignerAnalyzer
 {
@@ -21,12 +20,9 @@ namespace WinformsDesignerAnalyzer
 	{
 		private const string title = "Create .Designer.cs";
 
-		public sealed override ImmutableArray<string> FixableDiagnosticIds
-		{
-			get { return ImmutableArray.Create(WinformsDesignerAnalyzerAnalyzer.DiagnosticId); }
-		}
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(WinformsDesignerAnalyzerAnalyzer.DiagnosticId);
 
-		public sealed override FixAllProvider GetFixAllProvider()
+        public sealed override FixAllProvider GetFixAllProvider()
 		{
 			return WellKnownFixAllProviders.BatchFixer;
 		}
@@ -128,10 +124,9 @@ namespace WinformsDesignerAnalyzer
 
             var endRegion = GetEndRegion(region);
 
-            if (endRegion == null)
-                return Enumerable.Empty<MemberDeclarationSyntax>();
-
-            return root.Members.Where(m => m.SpanStart > region.Span.End && m.SpanStart < endRegion.SpanStart);
+            return endRegion == null
+                ? Enumerable.Empty<MemberDeclarationSyntax>()
+                : root.Members.Where(m => m.SpanStart > region.Span.End && m.SpanStart < endRegion.SpanStart);
         }
 
         private static RegionDirectiveTriviaSyntax FindRegion(SyntaxNode root, string regionName)
