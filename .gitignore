@@ -1,3 +1,4 @@
 /.vs
 /WinformsDesignerAnalyzer/*/obj
 /WinformsDesignerAnalyzer/*/bin
+/WinformsDesignerAnalyzer/WinformsDesignerAnalyzer.Vsix/*.user

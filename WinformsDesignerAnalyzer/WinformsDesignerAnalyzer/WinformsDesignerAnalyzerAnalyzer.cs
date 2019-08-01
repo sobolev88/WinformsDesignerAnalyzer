@@ -29,7 +29,7 @@ namespace WinformsDesignerAnalyzer
 		{
 			var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-			if (!IsSubtypeFrom(namedTypeSymbol, "System.Windows.Forms.ContainerControl"))
+			if (!IsSubtypeFrom(namedTypeSymbol, "System.Windows.Forms.Control"))
 			{
 				return;
 			}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="WinformsDesignerAnalyzer.ea7f55f0-fa2a-45e1-85c7-243399716409" Version="1.1.0" Language="en-US" Publisher="sobolev88"/>
+        <Identity Id="WinformsDesignerAnalyzer.ea7f55f0-fa2a-45e1-85c7-243399716409" Version="1.1.1" Language="en-US" Publisher="sobolev88"/>
         <DisplayName>WinformsDesignerAnalyzer</DisplayName>
         <Description xml:space="preserve">This analyzer finds old forms without .Design.cs file and creates it.</Description>
     </Metadata>
